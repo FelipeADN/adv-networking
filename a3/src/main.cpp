@@ -9,30 +9,30 @@ João Antônio Astolfi
 
 #include <Arduino.h>
 #include <WiFi.h>
-#include <AsyncTCP.h>           // NEW: Required for AsyncMqttClient
-#include <AsyncMqttClient.h>    // NEW: MQTT library from ex03.pdf
-#include <avdweb_Switch.h>      // NEW: Button library from ex03.pdf
+#include <AsyncTCP.h>
+#include <AsyncMqttClient.h>
+#include <avdweb_Switch.h>
 
-// WIFI (Kept from original)
+// WIFI
 #define WIFI_SSID "ADN-IOT"
 #define WIFI_PASSWORD "WBNuyawB2a"
-#define ADNGROUP "adn-group32" // Updated from "adn-groupXY" based on your comment
+#define ADNGROUP "adn-group32"
 
-// MQTT (NEW: Based on ass03.pdf and ex03.pdf)
+// MQTT
 #define MQTT_HOST IPAddress(192, 168, 0, 1) // Broker IP from ass03.pdf Task 1.2
-#define MQTT_PORT 1883                      // From ex03.pdf
-#define LIGHT_SWITCH_ID "sonoff_03" // A unique ID for your light switch
+#define MQTT_PORT 1883
+#define LIGHT_SWITCH_ID "sonoff_03"         //depends on the light swithc given on the day
 #define MQTT_TOPIC_COMMAND "cmnd/" LIGHT_SWITCH_ID "/POWER"
-#define MQTT_PAYLOAD_TOGGLE "TOGGLE" // From ass03.pdf Task 3
+#define MQTT_PAYLOAD_TOGGLE "TOGGLE"
 
-// BUTTON (NEW: From ex03.pdf)
-#define PUSHBUTTON 17 // From ex03.pdf
+// BUTTON
+#define PUSHBUTTON 17
 
 // GLOBAL VARS
-AsyncMqttClient mqttClient; // From ex03.pdf
-Switch button = Switch(PUSHBUTTON); // From ex03.pdf
+AsyncMqttClient mqttClient;
+Switch button = Switch(PUSHBUTTON);
 
-// FUNCTION PROTOTYPES (Updated)
+// FUNCTIONS
 void connect_to_wifi();
 void slow_blink();
 void fast_blink();
@@ -49,10 +49,10 @@ void setup() {
   // LED setup
   pinMode(LED_BUILTIN, OUTPUT);
 
-  // WiFi setup (Kept from original)
+
   connect_to_wifi();
 
-  // MQTT setup (NEW: Based on ex03.pdf)
+  // MQTT setup (from slides)
   mqttClient.onConnect(onMqttConnect);
   mqttClient.onDisconnect(onMqttDisconnect);
   mqttClient.onMessage(onMqttMessage);
@@ -62,7 +62,7 @@ void setup() {
   Serial.println("Connecting to MQTT broker...");
   mqttClient.connect();
 
-  // Wait for MQTT connection (similar to your WiFi wait)
+  // Wait for MQTT connection (implemented similar to wifi function)
   unsigned long start_time = millis();
   const unsigned long timeout = 10000; // 10 seconds
   while (!mqttClient.connected() && millis() - start_time < timeout) {
@@ -73,7 +73,7 @@ void setup() {
   if (!mqttClient.connected()) {
     Serial.println("\nCould not connect to MQTT broker!");
     while (1) {
-      fast_blink(); // Halt with fast blink on failure
+      fast_blink();
     }
   }
 
@@ -82,7 +82,6 @@ void setup() {
 }
 
 void loop() {
-  // Button logic (NEW: From ex03.pdf)
   button.poll();
 
   if (button.pushed()) {
@@ -90,9 +89,7 @@ void loop() {
   }
 }
 
-/**
- * @brief Publishes the MQTT TOGGLE command.
- */
+ // Publishes the MQTT TOGGLE command.
 void publish_mqtt_toggle() {
   Serial.printf("Button pushed! Publishing '%s' to topic '%s'\n",
                 MQTT_PAYLOAD_TOGGLE, MQTT_TOPIC_COMMAND);
@@ -101,32 +98,25 @@ void publish_mqtt_toggle() {
   mqttClient.publish(MQTT_TOPIC_COMMAND, 0, false, MQTT_PAYLOAD_TOGGLE);
 }
 
-/**
- * @brief MQTT Connect Callback
- */
 void onMqttConnect(bool sessionPresent) {
   Serial.println("MQTT Connected.");
-  digitalWrite(LED_BUILTIN, HIGH); // Ensure LED is on if we reconnect
+  digitalWrite(LED_BUILTIN, HIGH);
 }
 
-/**
- * @brief MQTT Disconnect Callback
- */
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
   Serial.printf("MQTT Disconnected. Reason: %d\n", (int)reason);
-  digitalWrite(LED_BUILTIN, LOW); // Turn off LED to show disconnected state
+  digitalWrite(LED_BUILTIN, LOW);
   // Try to reconnect
   mqttClient.connect();
 }
 
-/**
- * @brief MQTT Message Received Callback (from ex03.pdf)
- */
+
+//MQTT Message Received Callback
 void onMqttMessage(char *topic, char *payload,
                    AsyncMqttClientMessageProperties properties, size_t len,
                    size_t index, size_t total) {
-  // This function is required by the setup
-  // We can log incoming messages for debugging
+
+  //log incoming messages for debugging
   Serial.print("Message received [");
   Serial.print(topic);
   Serial.print("]: ");
@@ -138,9 +128,6 @@ void onMqttMessage(char *topic, char *payload,
   Serial.println(msg);
 }
 
-/**
- * @brief Connects to WiFi (Kept from original, minor fixes)
- */
 void connect_to_wifi() {
   WiFi.mode(WIFI_STA);
   WiFi.setHostname(ADNGROUP);
@@ -151,7 +138,7 @@ void connect_to_wifi() {
   const unsigned long timeout = 10000; // 10 seconds
 
   while (WiFi.status() != WL_CONNECTED && millis() - start_time < timeout) {
-    delay(1000); // This delay is fine in setup
+    delay(1000);
     slow_blink();
   }
 
@@ -166,13 +153,9 @@ void connect_to_wifi() {
   }
 
   // If connection successful, prints IP:
-  // Fixed IP address printing
   Serial.printf("\n IP Address: %s\n", WiFi.localIP().toString().c_str());
 }
 
-/**
- * @brief Blinks LED slowly (Kept from original)
- */
 void slow_blink() {
   digitalWrite(LED_BUILTIN, HIGH);
   delay(1000);
@@ -180,9 +163,6 @@ void slow_blink() {
   delay(1000);
 }
 
-/**
- * @brief Blinks LED fast (Kept from original)
- */
 void fast_blink() {
   digitalWrite(LED_BUILTIN, HIGH);
   delay(250);
