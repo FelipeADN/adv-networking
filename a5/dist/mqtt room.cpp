@@ -1,5 +1,5 @@
-/* ASSIGNMENT 3 - Advanced Networking
-(Modified from Assignment 2)
+/* ASSIGNMENT 5 - Advanced Networking
+(Modified from Assignment 4)
 
 Group 32:
 Fabiano de Sá Filho
@@ -60,21 +60,26 @@ void setup() {
 // MAIN
 void loop() {
 
-  // Reads again
+  // Reads
   float temp = bme.readTemperature();
-  Serial.printf("Sending Temp to broker: %.2f \n", temp);
+  float p = bme.readPressure();
+  float hum = bme.readHumidity();
 
-  // Converts float to char
-  char buffer[4];
-  snprintf(buffer, sizeof(buffer), "%.2f", temp);
+  Serial.printf("Sending Temp, pressure, humidity to broker: %.2f  %.2f  %.2f \n", temp, p, hum);
+
+  // Builds payload
+  char buffer[12];
+  memcpy(&buffer[0], &temp, sizeof(float));
+  memcpy(&buffer[4], &p, sizeof(float));
+  memcpy(&buffer[8], &hum, sizeof(float));
+
 
   // Sends
-  mqttClient.publish("adn/group32/temp", 0, false, buffer, 4);
+  mqttClient.publish("adn/group32/temp", 0, false, buffer, 12);
 
   // Waits 5 seconds to read again
   delay(5000);
 }
-
 
 
 

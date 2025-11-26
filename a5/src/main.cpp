@@ -1,5 +1,5 @@
-/* ASSIGNMENT 3 - Advanced Networking
-(Modified from Assignment 2)
+/* ASSIGNMENT 5 - Advanced Networking
+(Modified from Assignment 4)
 
 Group 32:
 Fabiano de Sá Filho
